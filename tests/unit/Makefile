@@ -126,7 +126,7 @@ bench:
 # Lint code
 lint: pre-test
 	@echo "$(GREEN)Running linters...$(NC)"
-	@cd $(API_DIR) && golangci-lint run ./... || (echo "$(RED)Linting failed!$(NC)" && exit 1)
+	@cd $(API_DIR) && golangci-lint run ./... --timeout=10m || (echo "$(RED)Linting failed!$(NC)" && exit 1)
 	@echo "$(GREEN)Linting passed!$(NC)"
 
 # Run go vet
