@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sample-app-b
+  namespace: project-b
+  labels:
+    app: sample-app-b
+    project: b
+    app.kubernetes.io/name: sample-app-b
+    app.kubernetes.io/part-of: aks-scale-to-zero
+spec:
+  replicas: 0 # Start with 0 replicas for Scale to Zero demo
+  selector:
+    matchLabels:
+      app: sample-app-b
+  template:
+    metadata:
+      labels:
+        app: sample-app-b
+        project: b
+    spec:
+      nodeSelector:
+        project: b # Ensure pods run on Project B nodes
+        workload: gpu # Ensure pods run on GPU-enabled nodes
+      tolerations:
+        - key: "sku"
+          operator: "Equal"
+          value: "gpu"
+          effect: "NoSchedule"
+      containers:
+        - name: sample-app-b
+          image: sample-app-b:initial
+          ports:
+            - containerPort: 8000
+              name: http-triton
+              protocol: TCP
+            - containerPort: 8001
+              name: grpc-triton
+              protocol: TCP
+            - containerPort: 8002
+              name: metrics
+              protocol: TCP
+          resources:
+            requests:
+              cpu: 1000m
+              memory: 2Gi
+              nvidia.com/gpu: 1
+            limits:
+              cpu: 2000m
+              memory: 4Gi
+              nvidia.com/gpu: 1
+          livenessProbe:
+            httpGet:
+              path: /v2/health/live
+              port: http-triton
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /v2/health/ready
+              port: http-triton
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 10
+            failureThreshold: 3
+          env:
+            - name: NVIDIA_VISIBLE_DEVICES
+              value: "all"
+            - name: NVIDIA_DRIVER_CAPABILITIES
+              value: "compute,utility"
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: false # Triton Server requires root for GPU access
+            capabilities:
+              drop:
+                - ALL
+              add:
+                - SYS_ADMIN # Required for GPU access
+          volumeMounts:
+            - name: model-repository
+              mountPath: /models
+      volumes:
+        - name: model-repository
+          emptyDir: {}

@@ -1,0 +1,38 @@
+name: "resnet50"
+platform: "onnxruntime_onnx"
+max_batch_size: 8
+input [
+  {
+    name: "data"
+    data_type: TYPE_FP32
+    format: FORMAT_NCHW
+    dims: [ 3, 224, 224 ]
+  }
+]
+output [
+  {
+    name: "resnetv17_dense0_fwd"
+    data_type: TYPE_FP32
+    dims: [ 1000 ]
+  }
+]
+
+# Instance groups for GPU deployment
+instance_group [
+  {
+    count: 1
+    kind: KIND_GPU
+  }
+]
+
+# Optimization settings
+optimization {
+  cuda {
+    graphs: true
+  }
+}
+
+# Dynamic batching for better throughput
+dynamic_batching {
+  max_queue_delay_microseconds: 100
+}

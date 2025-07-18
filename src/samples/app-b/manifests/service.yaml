@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: sample-app-b
+  namespace: project-b
+  labels:
+    app: sample-app-b
+    project: b
+    app.kubernetes.io/name: sample-app-b
+    app.kubernetes.io/part-of: aks-scale-to-zero
+  annotations:
+    service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8000
+      targetPort: http-triton
+      protocol: TCP
+      name: http-inference
+    - port: 8001
+      targetPort: grpc-triton
+      protocol: TCP
+      name: grpc-inference
+    - port: 8002
+      targetPort: metrics
+      protocol: TCP
+      name: metrics
+  selector:
+    app: sample-app-b

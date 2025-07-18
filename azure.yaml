@@ -1,0 +1,54 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+
+name: aks-scale-to-zero
+metadata:
+  template: aks-scale-to-zero-sample@1.0.0
+services:
+  nvidia-plugin:
+    host: aks
+    k8s:
+      namespace: gpu-resources
+      deploymentPath: ./manifests/nvidia-plugin
+  scale-api:
+    project: ./src/api
+    language: docker
+    host: aks
+    docker:
+      path: ./Dockerfile
+    k8s:
+      namespace: scale-system
+      deploymentPath: "dummy" # work around https://github.com/Azure/azure-dev/issues/5191
+      kustomize:
+        dir: .
+        edits:
+          - set image scale-api=${SERVICE_SCALE_API_IMAGE_NAME}
+  sample-app-a:
+    project: ./src/samples/app-a
+    language: docker
+    host: aks
+    docker:
+      path: ./Dockerfile
+    k8s:
+      namespace: project-a
+      deploymentPath: "dummy" # work around https://github.com/Azure/azure-dev/issues/5191
+      kustomize:
+        dir: .
+        edits:
+          - set image sample-app-a=${SERVICE_SAMPLE_APP_A_IMAGE_NAME}
+  sample-app-b:
+    project: ./src/samples/app-b
+    language: docker
+    host: aks
+    docker:
+      path: ./Dockerfile
+    k8s:
+      namespace: project-b
+      deploymentPath: "dummy" # work around https://github.com/Azure/azure-dev/issues/5191
+      kustomize:
+        dir: .
+        edits:
+          - set image sample-app-b=${SERVICE_SAMPLE_APP_B_IMAGE_NAME}
+infra:
+  provider: bicep
+  path: ./infra
+  module: main

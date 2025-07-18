@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sample-app-a
+  namespace: project-a
+  labels:
+    app: sample-app-a
+    project: a
+    app.kubernetes.io/name: sample-app-a
+    app.kubernetes.io/part-of: aks-scale-to-zero
+spec:
+  replicas: 0 # Start with 0 replicas for Scale to Zero demo
+  selector:
+    matchLabels:
+      app: sample-app-a
+  template:
+    metadata:
+      labels:
+        app: sample-app-a
+        project: a
+    spec:
+      nodeSelector:
+        project: a # Ensure pods run on Project A nodes
+      tolerations:
+        - key: project
+          operator: Equal
+          value: a
+          effect: NoSchedule
+      containers:
+        - name: sample-app-a
+          image: sample-app-a:initial
+          ports:
+            - containerPort: 8080
+              name: http
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 101
+            runAsGroup: 101
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: nginx-cache
+              mountPath: /var/cache/nginx
+            - name: nginx-run
+              mountPath: /var/run
+      volumes:
+        - name: nginx-cache
+          emptyDir: {}
+        - name: nginx-run
+          emptyDir: {}

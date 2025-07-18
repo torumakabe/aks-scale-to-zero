@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: scale-api
+  namespace: scale-system
+  labels:
+    app.kubernetes.io/name: scale-api
+    app.kubernetes.io/part-of: aks-scale-to-zero
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: scale-api
+  ports:
+    - port: 80
+      targetPort: http
+      protocol: TCP
+      name: http

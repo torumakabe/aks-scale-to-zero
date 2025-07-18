@@ -1,0 +1,41 @@
+# ClusterRole for Scale API - managing deployments across namespaces
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: scale-api-controller
+  labels:
+    app.kubernetes.io/name: scale-api
+    app.kubernetes.io/part-of: aks-scale-to-zero
+rules:
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get", "list", "patch", "update"]
+  - apiGroups: ["apps"]
+    resources: ["deployments/scale"]
+    verbs: ["get", "patch", "update"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list"]
+  - apiGroups: [""]
+    resources: ["namespaces"]
+    verbs: ["list"]
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["create", "patch"]
+---
+# ClusterRoleBinding for Scale API ServiceAccount
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: scale-api-controller-binding
+  labels:
+    app.kubernetes.io/name: scale-api
+    app.kubernetes.io/part-of: aks-scale-to-zero
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: scale-api-controller
+subjects:
+  - kind: ServiceAccount
+    name: scale-api-sa
+    namespace: scale-system

@@ -1,0 +1,12 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# リソース
+# Sample App Aのマニフェスト
+resources:
+- manifests/deployment.yaml
+- manifests/service.yaml
+images:
+- name: sample-app-a
+  newName: craksscaletozerotm6fic3o.azurecr.io/aks-scale-to-zero/sample-app-a-sample
+  newTag: azd-deploy-1752830533

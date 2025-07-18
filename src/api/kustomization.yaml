@@ -1,0 +1,19 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  annotations:
+    config.kubernetes.io/local-config: "true"
+  name: scale-api-kustomization
+
+# リソース
+#- manifests/namespace.yaml
+resources:
+- manifests/serviceaccount.yaml
+- manifests/deployment.yaml
+- manifests/service.yaml
+- manifests/rbac.yaml
+images:
+- name: scale-api
+  newName: craksscaletozerotm6fic3o.azurecr.io/aks-scale-to-zero/scale-api-sample
+  newTag: azd-deploy-1752830645
