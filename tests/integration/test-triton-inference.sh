@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # GPU Triton Inference Server Integration Test
-# Tests NVIDIA Triton Server functionality with GPU Scale to Zero
+# Tests NVIDIA Triton Server functionality
 
 # Load common test framework
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -32,7 +32,7 @@ NODE_SCALE_UP_TIMEOUT=900      # Time for new GPU nodes to be provisioned (up to
 TRITON_READY_TIMEOUT=180       # 3 minutes for Triton to be ready
 
 # Initialize test suite
-init_test_suite "GPU Triton Inference Server Test" "Tests NVIDIA Triton Server functionality with GPU Scale to Zero"
+init_test_suite "GPU Triton Inference Server Test" "Tests NVIDIA Triton Server functionality"
 
 echo -e "${CYAN}Target Deployment:${NC} $NAMESPACE/$DEPLOYMENT_NAME"
 echo -e "${CYAN}Scale API Endpoint:${NC} $SCALE_API_ENDPOINT"

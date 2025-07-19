@@ -1,10 +1,16 @@
 # AKS Scale to Zero
 
-AKS（Azure Kubernetes Service）のコスト最適化を実現するScale to Zero機能のサンプル実装です。
+AKS（Azure Kubernetes Service）のコスト最適化を実現する「ノードのScale to Zero」サンプル実装です。
 
 ## 概要
 
 このプロジェクトは、複数プロジェクトでAKSクラスタを共有しながら、使用していない時間帯のリソースコストを削減するシステムのサンプル実装を提供します。特にGPUノードのような高コストなリソースのコスト最適化に焦点を当てています。
+
+以下がこのサンプル実装の背景です。
+
+- KEDAで、処理量に応じてPodのレプリカ数を0にできる。合わせてCluster Autoscalerを組み合わせれば、ノードのScale to Zeroは可能。ただしGPUノードでイメージサイズの大きなAI/ML向けPodを動かすケースでは、ノードを消してしまうと、再度起動するのに長い時間がかかりがちである。オンライン推論では、使われるタイミングで起動しておきたい。よって手動で明示的に起動とScale to Zeroができると良い。
+
+- GPUノードの割り当て、最適化手段として[Kubernetes AI Toolchain Operator(KAITO)](https://learn.microsoft.com/ja-jp/azure/aks/ai-toolchain-operator)があるが、KAITOよりもシンプルな代替案もあると良い。
 
 ### 主な機能
 
@@ -24,7 +30,7 @@ graph TB
                 subgraph "AKS Subnet (10.224.0.0/20)"
                     subgraph "AKS Cluster (CNI Overlay + Cilium)"
                         subgraph "Project A Namespace"
-                            A1[Sample App A<br/>nginx]
+                            A1[Sample App A]
                         end
                         subgraph "Project B Namespace"
                             B1[Triton Inference Server<br/>ResNet50 Image Classification<br/>Tesla T4 GPU]
@@ -70,7 +76,6 @@ graph TB
     NP1 --> PE1
     NP2 --> PE1
     NP3 --> PE1
-    NP3 --> PE2
     
     PE1 --> ACR
     PE2 --> KV
@@ -97,7 +102,6 @@ graph TB
   - CNI Overlayモード（Pod CIDR: 10.244.0.0/16）
   - Ciliumデータプレーン（eBPFベース）
 - **Scale API**: Go実装のRESTful API（Deployment制御）
-  - 構造化ログ出力（JSON形式）
 - **サンプルアプリケーション**: 
   - Project A: nginx Webアプリケーション（静的コンテンツ配信）
   - Project B: NVIDIA Triton Inference Server（ResNet50画像分類、Tesla T4 GPU使用）
@@ -359,8 +363,7 @@ go run main.go
 
 #### Azure標準ツールでの確認
 
-1. **Azure Cost Management**: 詳細なコスト分析とレポート
-2. **AKS Cost Analysis Add-on**: Namespace単位のコスト把握
+**AKS Cost Analysis Add-on**: Namespace単位のコスト把握
 
 ## トラブルシューティング
 
@@ -372,19 +375,6 @@ kubectl describe nodes | grep -E "(Name:|Taints:|Conditions:)" -A 5
 
 # Podのイベントを確認
 kubectl describe pod <pod-name> -n <namespace>
-```
-
-### マネージドIDの権限エラー
-
-```bash
-# AKSクラスタのマネージドID確認
-az aks show \
-  --resource-group rg-<environment-name> \
-  --name aks-<environment-name> \
-  --query "identity.principalId" -o tsv
-
-# ロール割り当ての確認
-az role assignment list --assignee <principal-id> -o table
 ```
 
 ### Scale APIのエラー
