@@ -41,7 +41,7 @@ graph TB
                             B1[Triton Inference Server<br/>ResNet50 Image Classification<br/>Tesla T4 GPU]
                         end
                         subgraph "Scale API Namespace"
-                            API[Scale API<br/>Go Application<br/>Workload Identity]
+                            API[Scale API<br/>Go Application]
                         end
                     end
                     
